@@ -49,8 +49,6 @@ The x,y coordinates can be estimated using camera calibration, projecting a ray 
 
 After having the direction, the distance can be estimated based on the size of the blob. Correlating the blob size $s_{px}$ with the known size $s_m$ of the drone's capture mechanism $t$, and the focal length of the camera $f$, a distance between camera and drone can be calculated.
 
-Note: a fast-approaching drone can cause motion blur (and rolling-shutter skew on consumer sensors), which smears the blob and breaks the size-based depth estimate. A global-shutter camera and short exposure times are the standard mitigations.
-
 $$
 d = \frac{f s_m}{s_{px}}
 $$
@@ -58,7 +56,7 @@ $$
 
 ![](resources/distance.png)
 
-### Additional steps for detection (if simple solution fails/not robust enough)
+### Additional steps for detection (if simple solution fails/ is not robust enough)
 
 Train an object detection model (e.g. YOLO) to detect the back of the UAV. 
 This could be done by creating a small dataset, e.g. using synthetic data. Since Quantum Systems should have 3D models for all their drones, rendering a diverse dataset (e.g. using Blender) should be rather straightforward. In Blender, different scenarios (light, day/night, rain, ...) could be simulated. This dataset could be used to train an object detection model. If necessary, a small real dataset could be added to fine-tune the detector model.
@@ -106,11 +104,11 @@ Similarly, if the camera calibration is not accurate, the position of the UAV mi
 
 ### Exposure and Dynamic Range
 
-Outdoor conditions are punishing for a single camera. A drone approaching from above is typically backlit by a bright sky, which silhouettes it and crushes detail — auto-exposure exposes for the sky, and the drone becomes a dark blob with no usable features. Direct sun glare, lens flare, and fast changes in illumination (e.g. clouds passing) make this worse. Mitigations include using a camera with high dynamic range (HDR sensor), fixing exposure based on the expected drone region rather than the full frame, a lens hood to reduce flare, and, where possible, orienting the DronePort so the sun is not directly in the field of view.
+Outdoor conditions can be be tough when using a single camera. Depending on the sun, the dynamic range of the camera may not be enough to see the drone. Additionally, effects like lens flares or dirt on the camera lens could further increase this problem. This could be solved by using another sensor. (e.g. LiDAR), a camera with high dynamic range, lens hoods, ...
 
 ### Night Time Operation
 
-Without proper illumination, the contrast between the drone and the black sky may not be visible. If illumination is not an option, using active markers, e.g. LEDs, on the drone can help to track the drone at night. Another option is retroreflective markers on the drone combined with an IR illuminator co-located with the camera — the same trick motion-capture systems use. This works day and night, consumes no power on the drone, and gives very high-contrast detections that are trivial to threshold.
+Without proper illumination, the contrast between the drone and the black sky may not be visible. If illumination is not an option, using active markers, e.g. LEDs, on the drone can help to track the drone at night. Another option is retroreflective markers on the drone combined with an IR illuminator in the drone port. This works day and night, consumes no power on the drone, and gives very high-contrast detections that are easy to detect.
 
 ## Q3: What other approaches (sensors, etc) than a single camera would you use?
 
@@ -136,7 +134,7 @@ Ideally, the stereo cameras are mounted on the robot arm, not inside the gripper
 Alternatively, a distance sensor, e.g. LiDAR, could be used. This outputs a distance map directly. Segmenting the drone should be straightforward, as it is likely the only object in the LiDAR's FoV. However, getting the exact location of the drone's "grip attachment" would probably still require a camera.
 
 **Pros:**
-- High accuracy possible, usually no intrinsic calibration needed
+- High accuracy distance estimation, usually no intrinsic calibration needed
 - Works even in difficult conditions (night, rain, ...)
 
 **Cons:**
@@ -159,5 +157,4 @@ An RTK base station can reduce the relative GPS error between drone and drone po
 Note: a non-RTK GPS on the drone is only meter-accurate and not sufficient on its own for gripping (which needs centimeter precision), but the drone's own telemetry can still feed the Kalman filter to refine the position estimate of the drone.
 
 **Recommendation:**
-Start with a stereo camera setup. It is a cheap option and likely sufficient on its own under normal conditions. If it does not prove reliable enough in the deployment environment, fuse in another sensor modality (RTK-GPS or LiDAR) to enhance robustness, picking whichever best addresses the observed failure modes.
-
+Start with a stereo camera setup. It is a cheap option and likely sufficient on its own under normal conditions. If it does not prove reliable enough in the deployment environment, fuse in another sensor modality (RTK-GPS or LiDAR) to enhance robustness, picking whichever best addresses the observed problems.
